@@ -16,7 +16,7 @@ Follow these simple instructions to set up and run the project locally.
 
 ### Prerequisites
 *   Python 3.8+
-*   Ensure the `artifacts/wx_data` folder (containing the weather text files) is present in the project root directory.
+*   Ensure the `app/artifacts/wx_data` folder (containing the weather text files) is present in the project root directory.
 
 ### 1. Setup Environment
 ```bash
@@ -24,11 +24,13 @@ Follow these simple instructions to set up and run the project locally.
 pip install -r requirements.txt
 ```
 
-### 2. Run Data Pipeline (Ingestion & Analysis)
-We have optimized the data processing pipeline to be faster and easier to run.
+
+### 2. Ingest Data (Problem 2)
+This script handles data parsing, unit conversion, and duplicate checking. from app/artifacts/wx_data. 
+optimized the data processing pipeline to be faster and easier to run.
 
 ```bash
-python -m app.main
+python -m app.ingest
 ```
 *   **Optimized Ingestion**: Uses parallel processing (multiprocessing) to parse weather files concurrently, significantly reducing ingestion time.
 *   **Efficient Database Inserts**: Implements bulk insert strategies to handle large volumes of data efficiently.
@@ -37,6 +39,18 @@ python -m app.main
     1.  Ingests data from `app/artifacts/wx_data` into `weather.db`.
     2.  Calculates yearly statistics and updates the `weather_stats` table.
 *   **Output**: Detailed progress logs for file processing and database insertion.
+*   **Action**: Reads files from `app/artifacts/wx_data`, processes them, and inserts them into the database.
+*   **Output**: Console logs indicating start time, number of records processed, and total execution time.
+*   **Result**: Creates `weather.db` (SQLite) and populates the `weather_record` table.
+
+### 3. Run Analysis (Problem 3)
+Calculate yearly statistics (average max/min temperature, total precipitation) for each weather station.
+
+```bash
+python -m app.services.analysis
+```
+*   **Action**: Aggregates data from `weather_record` and calculates stats.
+*   **Result**: Populates the `weather_stats` table with the calculated results.
 
 ### 4. Launch REST API (Problem 4)
 Start the FastAPI server to expose the data via a REST interface.
