@@ -5,23 +5,38 @@ from app.api import weather
 from app.core.database import engine
 from app.models import Base
 
-# Create all tables in the database.
-# This is a simple approach for this exercise. In a production environment,
-# you would use a migration tool like Alembic.
+# This is the main entry point for the FastAPI application.
+# It brings together the API router, database initialization, and the frontend dashboard.
+
+
+# Database table initialization.
+# `Base.metadata.create_all(bind=engine)` checks for the existence of tables
+# before creating them, making it safe to run on every application startup.
+# For production environments, a more robust migration tool like Alembic
+# would be used to manage schema changes over time.
 Base.metadata.create_all(bind=engine)
 
+
+# Initialize the FastAPI app with metadata for the OpenAPI documentation.
 app = FastAPI(
     title="Weather Data API",
-    description="A REST API for weather and crop yield data.",
+    description="An API for accessing and analyzing weather data records.",
     version="1.0.0"
 )
 
+# Setup for the HTML template rendering for the root dashboard page.
 templates = Jinja2Templates(directory="app/templates")
 
-# Include API routers
+
+# The API router is included with a prefix, organizing all weather-related
+# endpoints under `/api`. This is a good practice for versioning and clarity.
 app.include_router(weather.router, prefix="/api", tags=["Weather"])
 
 
 @app.get("/", response_class=HTMLResponse, tags=["Root"])
 async def read_root(request: Request):
+    """
+    Serves the main HTML page, which acts as a simple dashboard for
+    visualizing the weather data.
+    """
     return templates.TemplateResponse("index.html", {"request": request})
