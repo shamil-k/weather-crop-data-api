@@ -100,6 +100,23 @@ For a production environment (as outlined in the original architecture plan), th
 *   **Decoupled Pipeline**: Ingestion and analysis would be triggered by events (e.g., file uploads to Cloud Storage/S3) rather than running at container startup.
 *   **Persistent Database**: The local SQLite database would be replaced by a managed database service (e.g., Cloud SQL, RDS) to persist data across container restarts.
 
+### 🔄 CI/CD Pipeline
+A robust CI/CD pipeline has been implemented to automate the deployment process:
+*   **Source Control**: The code is hosted on GitHub.
+*   **Automated Builds**: Upon pushing to the `main` branch, a Google Cloud Build trigger is activated.
+*   **Deployment**: This trigger builds the Docker container and automatically deploys the updated revision to Google Cloud Run, ensuring the live application is always in sync with the latest code.
+
+### AWS Deployment Architecture (Requirement)
+While this demo is hosted on Google Cloud Run for convenience, here is the architecture I would use if deploying to AWS:
+
+1.  **Compute (API)**: **AWS Fargate** (Serverless Containers). It provides the same benefits as Cloud Run—scaling to zero, no server management—but within the AWS ecosystem.
+2.  **Database**: **Amazon RDS for PostgreSQL**. A robust, managed relational database is better suited for production than SQLite.
+3.  **Ingestion Trigger**: **S3 Event Notifications**. Uploading weather data files to an S3 bucket would trigger a **Lambda Function**.
+4.  **Ingestion Processing**: **AWS Lambda** or **AWS Batch**.
+    *   For small files, Lambda is sufficient.
+    *   For large bulk ingestion (like the historical weather data), AWS Batch is better suited for long-running, compute-intensive jobs.
+5.  **Scheduling**: **Amazon EventBridge** (formerly CloudWatch Events) would be used to trigger the yearly statistical analysis jobs or periodic data fetches.
+
 ---
 
 ## 🔮 Future Roadmap
