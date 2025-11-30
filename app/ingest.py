@@ -76,15 +76,22 @@ def ingest_data(data_dir: str):
     files = glob.glob(os.path.join(data_dir, "*.txt"))
     all_records = []
 
-    # Calculate an optimal chunk size for the process pool
-    chunksize = max(1, len(files) // (multiprocessing.cpu_count() * 2))
-
-    # Use 'spawn' context for better compatibility across OS (especially Windows)
-    with ProcessPoolExecutor(mp_context=multiprocessing.get_context('spawn')) as executor:
-        results = executor.map(process_file, files, chunksize=chunksize)
-        for i, result in enumerate(results):
-            all_records.extend(result)
+    # Check for sequential mode (useful for Cloud Run/Serverless where /dev/shm is limited)
+    if os.environ.get('SEQUENTIAL_INGEST', 'false').lower() == 'true':
+        logger.info("Running in sequential mode (SEQUENTIAL_INGEST=true)")
+        for i, file_path in enumerate(files):
+            all_records.extend(process_file(file_path))
             logger.info(f"Processed file {i + 1}/{len(files)}")
+    else:
+        # Calculate an optimal chunk size for the process pool
+        chunksize = max(1, len(files) // (multiprocessing.cpu_count() * 2))
+
+        # Use 'spawn' context for better compatibility across OS (especially Windows)
+        with ProcessPoolExecutor(mp_context=multiprocessing.get_context('spawn')) as executor:
+            results = executor.map(process_file, files, chunksize=chunksize)
+            for i, result in enumerate(results):
+                all_records.extend(result)
+                logger.info(f"Processed file {i + 1}/{len(files)}")
 
     session = SessionLocal()
     total_new_records = 0
