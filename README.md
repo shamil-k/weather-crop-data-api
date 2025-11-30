@@ -1,4 +1,3 @@
-
 ## Project Overview
 
 This project demonstrates data ingestion, modeling, analysis, and API exposure using Python, FastAPI, and SQLAlchemy.
