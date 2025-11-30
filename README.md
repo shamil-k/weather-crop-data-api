@@ -2,7 +2,12 @@
 
 This project demonstrates data ingestion, modeling, analysis, and API exposure using Python, FastAPI, and SQLAlchemy.
 
-## 📊 Dashboard Preview
+## 🟢 Live Demo
+
+Check out the live application running on Google Cloud Run:
+**[Weather Data API & Dashboard](https://weather-crop-data-api-221991611516.europe-west1.run.app/)**
+
+##  Dashboard Preview
 
 Below is a snapshot of the interactive web dashboard. It allows for dynamic filtering by station, year, and date range, and visualizes the data through a combination chart.
 
