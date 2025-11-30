@@ -77,24 +77,22 @@ pytest
 
 ## ☁️ Deployment Strategy
 
-This section outlines the proposed architecture for deploying this application to AWS, prioritizing scalability, automation, and continuous data updates.
+This application is containerized and ready for deployment on serverless container platforms like **Google Cloud Run**.
 
-### Core Architecture
-We utilize a **Serverless Architecture** to minimize operational overhead and costs.
+### Cloud Run "Demo Mode"
+For demonstration purposes, the container is configured to automatically perform the full data pipeline upon startup.
 
-*   **API Hosting**: **AWS Lambda** (running the FastAPI app) fronted by **Amazon API Gateway**. This allows the API to scale automatically with request volume.
-*   **Database**: **Amazon RDS for PostgreSQL**. A managed relational database service replacing the local SQLite file for production reliability and concurrency.
-*   **Secrets Management**: **AWS Secrets Manager** to securely store database credentials.
+When the container starts:
+1.  **Auto-Ingestion**: The `ingest.py` script runs immediately, parsing all weather data files in `app/artifacts/wx_data` and populating the database.
+2.  **Auto-Analysis**: The `analysis.py` script follows, calculating yearly statistics for all stations.
+3.  **Service Start**: Finally, the FastAPI web server launches, serving the API and the dashboard with fresh data.
 
-### Continuous Weather Data Updation
-To ensure the database is continuously updated as new weather data becomes available, we utilize an event-driven pipeline:
+This ensures that every new deployment or cold start presents a fully populated and analyzed dataset without manual intervention.
 
-1.  **Data Arrival**: New weather data files are uploaded to a designated **Amazon S3** bucket.
-2.  **Trigger**: An **S3 Event Notification** automatically triggers an **Ingestion Lambda** function.
-3.  **Processing**: The Ingestion Lambda runs the `ingest.py` logic, parsing the new file and performing an "upsert" (update or insert) operation into the RDS database.
-4.  **Analysis Update**: Upon successful ingestion, an **AWS EventBridge** rule triggers the **Analysis Lambda** (`analysis.py`). This recalculates and updates the statistics table ensuring the API always serves the freshest insights.
-
-This pipeline ensures that the system is **self-updating** and requires no manual intervention to stay current.
+### Production Considerations
+For a production environment (as outlined in the original architecture plan), the following changes would be made:
+*   **Decoupled Pipeline**: Ingestion and analysis would be triggered by events (e.g., file uploads to Cloud Storage/S3) rather than running at container startup.
+*   **Persistent Database**: The local SQLite database would be replaced by a managed database service (e.g., Cloud SQL, RDS) to persist data across container restarts.
 
 ---
 
