@@ -16,7 +16,7 @@ def process_file(file_path: str) -> list[dict]:
     """
     Parses a single weather data file and returns a list of record dictionaries.
 
-    This function is designed to be run in parallel. It handles reading the file,
+    This function is designed to be run in parallel.It handles reading the file,
     parsing lines, converting data types, and handling missing values (-9999).
     It does NOT interact with the database to avoid locking issues.
     """
