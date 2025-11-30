@@ -12,9 +12,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application's code into the container
 COPY ./app /app/app
+COPY start.sh /app/start.sh
+
+# Make the start script executable
+RUN chmod +x /app/start.sh
 
 # Expose port 80 for the application
 EXPOSE 80
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+# Run the application using the startup script
+CMD ["/app/start.sh"]
