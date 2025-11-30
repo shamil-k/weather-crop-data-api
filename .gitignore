@@ -1,0 +1,19 @@
+# Database
+weather.db
+*.sqlite3
+env
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+.env
+
+# IDEs
+.vscode/
+.idea/
+
+# Data
+wx_data

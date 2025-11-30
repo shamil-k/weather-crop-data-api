@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Data Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --background-color: #f4f7f6;
+            --card-background: #ffffff;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        select,
+        input,
+        button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Weather Data Analytics Dashboard</h1>
+
+        <div class="card">
+            <div class="filters">
+                <select id="stationId">
+                    <option value="">Select a Station...</option>
+                </select>
+                <input type="number" id="year" placeholder="Year (Stats Only)">
+                <span style="color: #aaa;">|</span>
+                <input type="text" id="startDate" placeholder="From Date (YYYY-MM-DD)" onfocus="(this.type='date')"
+                    onblur="(this.type='text')">
+                <input type="text" id="endDate" placeholder="To Date (YYYY-MM-DD)" onfocus="(this.type='date')"
+                    onblur="(this.type='text')">
+                <button onclick="fetchData()">Update Dashboard</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="chart-container">
+                <canvas id="weatherChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 id="tableTitle">Detailed Statistics</h3>
+            <div style="overflow-x: auto;">
+                <table id="statsTable">
+                    <thead>
+                        <tr id="tableHeader">
+                            <th>Station ID</th>
+                            <th>Year</th>
+                            <th>Avg Max Temp (°C)</th>
+                            <th>Avg Min Temp (°C)</th>
+                            <th>Total Precip (cm)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let weatherChart = null;
+
+        async function fetchData() {
+            const stationId = document.getElementById('stationId').value;
+            const year = document.getElementById('year').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            let url = '';
+            let isDaily = false;
+
+            // Decision Logic: If dates are provided, fetch daily data (/weather).
+            // Otherwise, fetch yearly stats (/weather/stats).
+            if (startDate || endDate) {
+                isDaily = true;
+                url = '/api/weather?limit=1000';
+                if (stationId) url += `&station_id=${stationId}`;
+                if (startDate) url += `&start_date=${startDate}`;
+                if (endDate) url += `&end_date=${endDate}`;
+            } else {
+                isDaily = false;
+                url = '/api/weather/stats?limit=1000';
+                if (stationId) url += `&station_id=${stationId}`;
+                if (year) url += `&year=${year}`;
+            }
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                updateUI(data, isDaily);
+
+            } catch (error) {
+                console.error("Could not fetch data:", error);
+                alert("Failed to fetch data. See console for details.");
+            }
+        }
+
+        function updateUI(data, isDaily) {
+            updateTableHeaders(isDaily);
+            updateTable(data, isDaily);
+            updateChart(data, isDaily);
+        }
+
+        function updateTableHeaders(isDaily) {
+            const headerRow = document.getElementById('tableHeader');
+            const title = document.getElementById('tableTitle');
+
+            if (isDaily) {
+                title.textContent = "Daily Weather Records";
+                headerRow.innerHTML = `
+                    <th>Station ID</th>
+                    <th>Date</th>
+                    <th>Max Temp (°C)</th>
+                    <th>Min Temp (°C)</th>
+                    <th>Precipitation (mm)</th>
+                `;
+            } else {
+                title.textContent = "Yearly Statistics";
+                headerRow.innerHTML = `
+                    <th>Station ID</th>
+                    <th>Year</th>
+                    <th>Avg Max Temp (°C)</th>
+                    <th>Avg Min Temp (°C)</th>
+                    <th>Total Precip (cm)</th>
+                `;
+            }
+        }
+
+        function updateTable(data, isDaily) {
+            const tableBody = document.getElementById('statsTable').querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                const row = tableBody.insertRow();
+                row.insertCell(0).innerHTML = '<div class="no-data">No data found for selected criteria</div>';
+                row.cells[0].colSpan = 5;
+                return;
+            }
+
+            data.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell(0).textContent = item.station_id;
+
+                if (isDaily) {
+                    row.insertCell(1).textContent = item.date;
+                    row.insertCell(2).textContent = item.max_temp !== null ? item.max_temp.toFixed(1) : 'N/A';
+                    row.insertCell(3).textContent = item.min_temp !== null ? item.min_temp.toFixed(1) : 'N/A';
+                    row.insertCell(4).textContent = item.precip !== null ? item.precip.toFixed(1) : 'N/A';
+                } else {
+                    row.insertCell(1).textContent = item.year;
+                    row.insertCell(2).textContent = item.avg_max_temp !== null ? item.avg_max_temp.toFixed(2) : 'N/A';
+                    row.insertCell(3).textContent = item.avg_min_temp !== null ? item.avg_min_temp.toFixed(2) : 'N/A';
+                    row.insertCell(4).textContent = item.total_precip !== null ? item.total_precip.toFixed(2) : 'N/A';
+                }
+            });
+        }
+
+        function updateChart(data, isDaily) {
+            const ctx = document.getElementById('weatherChart').getContext('2d');
+
+            // Sort data chronologically
+            if (isDaily) {
+                data.sort((a, b) => new Date(a.date) - new Date(b.date));
+            } else {
+                data.sort((a, b) => a.year - b.year);
+            }
+
+            // Map fields based on data type
+            const labels = data.map(d => isDaily ? d.date : d.year);
+            const maxTemps = data.map(d => isDaily ? d.max_temp : d.avg_max_temp);
+            const minTemps = data.map(d => isDaily ? d.min_temp : d.avg_min_temp);
+            const precip = data.map(d => isDaily ? d.precip : d.total_precip);
+
+            if (weatherChart) {
+                weatherChart.destroy();
+            }
+
+            weatherChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total Precipitation (cm)',
+                            data: precip,
+                            backgroundColor: 'rgba(52, 152, 219, 0.5)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1',
+                            order: 2
+                        },
+                        {
+                            label: 'Avg Max Temp (°C)',
+                            data: maxTemps,
+                            borderColor: 'rgba(231, 76, 60, 1)',
+                            backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                            type: 'line',
+                            yAxisID: 'y',
+                            tension: 0.4,
+                            order: 0
+                        },
+                        {
+                            label: 'Avg Min Temp (°C)',
+                            data: minTemps,
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                            type: 'line',
+                            yAxisID: 'y',
+                            tension: 0.4,
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Weather Statistics Overview'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(2);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Precipitation (cm)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                    }
+                }
+            });
+        }
+
+        async function fetchStations() {
+            try {
+                const response = await fetch('/api/weather/stations');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const stations = await response.json();
+                const select = document.getElementById('stationId');
+
+                stations.forEach(station => {
+                    const option = document.createElement('option');
+                    option.value = station;
+                    option.textContent = station;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Could not fetch stations:", error);
+            }
+        }
+
+        window.onload = async () => {
+            await fetchStations();
+            fetchData();
+        };
+    </script>
+</body>
+
+</html>
