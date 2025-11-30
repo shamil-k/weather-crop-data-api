@@ -24,12 +24,21 @@ Follow these simple instructions to set up and run the project locally.
 pip install -r requirements.txt
 ```
 
+
 ### 2. Ingest Data (Problem 2)
-This script handles data parsing, unit conversion, and duplicate checking. from app/artifacts/wx_data
+This script handles data parsing, unit conversion, and duplicate checking. from app/artifacts/wx_data. 
+optimized the data processing pipeline to be faster and easier to run.
 
 ```bash
 python -m app.ingest
 ```
+*   **Optimized Ingestion**: Uses parallel processing (multiprocessing) to parse weather files concurrently, significantly reducing ingestion time.
+*   **Efficient Database Inserts**: Implements bulk insert strategies to handle large volumes of data efficiently.
+*   **Integrated Workflow**: Automatically triggers the statistical analysis after ingestion is complete.
+*   **Action**:
+    1.  Ingests data from `app/artifacts/wx_data` into `weather.db`.
+    2.  Calculates yearly statistics and updates the `weather_stats` table.
+*   **Output**: Detailed progress logs for file processing and database insertion.
 *   **Action**: Reads files from `app/artifacts/wx_data`, processes them, and inserts them into the database.
 *   **Output**: Console logs indicating start time, number of records processed, and total execution time.
 *   **Result**: Creates `weather.db` (SQLite) and populates the `weather_record` table.
