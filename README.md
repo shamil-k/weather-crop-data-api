@@ -16,7 +16,7 @@ Follow these simple instructions to set up and run the project locally.
 
 ### Prerequisites
 *   Python 3.8+
-*   Ensure the `artifacts/wx_data` folder (containing the weather text files) is present in the project root directory.
+*   Ensure the `app/artifacts/wx_data` folder (containing the weather text files) is present in the project root directory.
 
 ### 1. Setup Environment
 ```bash
@@ -25,12 +25,12 @@ pip install -r requirements.txt
 ```
 
 ### 2. Ingest Data (Problem 2)
-This script handles data parsing, unit conversion, and duplicate checking. from artifacts/wx_data
+This script handles data parsing, unit conversion, and duplicate checking. from app/artifacts/wx_data
 
 ```bash
 python -m app.ingest
 ```
-*   **Action**: Reads files from `artifacts/wx_data`, processes them, and inserts them into the database.
+*   **Action**: Reads files from `app/artifacts/wx_data`, processes them, and inserts them into the database.
 *   **Output**: Console logs indicating start time, number of records processed, and total execution time.
 *   **Result**: Creates `weather.db` (SQLite) and populates the `weather_record` table.
 

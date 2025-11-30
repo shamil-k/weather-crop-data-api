@@ -124,4 +124,4 @@ def ingest_data(data_dir: str):
 
 
 if __name__ == "__main__":
-    ingest_data("artifacts/wx_data")
+    ingest_data("app/artifacts/wx_data")
