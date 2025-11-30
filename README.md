@@ -6,7 +6,7 @@ This project demonstrates data ingestion, modeling, analysis, and API exposure u
 
 Below is a snapshot of the interactive web dashboard. It allows for dynamic filtering by station, year, and date range, and visualizes the data through a combination chart.
 
-![Weather Analytics Dashboard](app/artifacts/snapshot/ui.png)
+![Weather Analytics Dashboard](app\artifacts\snapshot\dashboard_ui.png)
 
 ---
 
