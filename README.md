@@ -85,15 +85,15 @@ pytest
 This application is containerized and ready for deployment on serverless container platforms like **Google Cloud Run**.
 
 ### Cloud Run "Demo Mode"
-For demonstration purposes, the container is configured to automatically perform the full data pipeline upon startup.
+For demonstration purposes, the container uses a "Fast Startup" mechanism.
 
 When the container starts:
-1.  **Service Start**: The FastAPI web server launches immediately to ensure the service is responsive and passes health checks.
-2.  **Background Pipeline**: Concurrently, a background process triggers:
-    *   **Auto-Ingestion**: Parsing all weather data files in `app/artifacts/wx_data` to populate the database.
-    *   **Auto-Analysis**: Calculating yearly statistics for all stations once ingestion is complete.
+1.  **Database Download**: Instead of processing raw text files (which is CPU intensive and slow), the container downloads a pre-populated SQLite database (`weather.db`) from a secure remote location.
+2.  **Service Start**: The FastAPI web server launches immediately after the download is complete.
 
-This ensures that the application is accessible immediately, while data populates in the background (typically within a few seconds/minutes depending on volume).
+
+
+
 
 ### Production Considerations
 For a production environment (as outlined in the original architecture plan), the following changes would be made:
