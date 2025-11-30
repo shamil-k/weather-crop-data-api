@@ -17,8 +17,8 @@ COPY start.sh /app/start.sh
 # Make the start script executable
 RUN chmod +x /app/start.sh
 
-# Expose port 80 for the application
-EXPOSE 80
+# Expose port 8080 for the application (Cloud Run default)
+EXPOSE 8080
 
 # Run the application using the startup script
 CMD ["/app/start.sh"]

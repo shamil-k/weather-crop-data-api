@@ -88,11 +88,12 @@ This application is containerized and ready for deployment on serverless contain
 For demonstration purposes, the container is configured to automatically perform the full data pipeline upon startup.
 
 When the container starts:
-1.  **Auto-Ingestion**: The `ingest.py` script runs immediately, parsing all weather data files in `app/artifacts/wx_data` and populating the database.
-2.  **Auto-Analysis**: The `analysis.py` script follows, calculating yearly statistics for all stations.
-3.  **Service Start**: Finally, the FastAPI web server launches, serving the API and the dashboard with fresh data.
+1.  **Service Start**: The FastAPI web server launches immediately to ensure the service is responsive and passes health checks.
+2.  **Background Pipeline**: Concurrently, a background process triggers:
+    *   **Auto-Ingestion**: Parsing all weather data files in `app/artifacts/wx_data` to populate the database.
+    *   **Auto-Analysis**: Calculating yearly statistics for all stations once ingestion is complete.
 
-This ensures that every new deployment or cold start presents a fully populated and analyzed dataset without manual intervention.
+This ensures that the application is accessible immediately, while data populates in the background (typically within a few seconds/minutes depending on volume).
 
 ### Production Considerations
 For a production environment (as outlined in the original architecture plan), the following changes would be made:
