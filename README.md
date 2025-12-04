@@ -5,7 +5,7 @@ This project demonstrates data ingestion, modeling, analysis, and API exposure u
 ## 🟢 Live Demo
 
 Check out the live application running on Google Cloud Run:
-**[Weather Data API & Dashboard](https://weather-crop-data-api-221991611516.europe-west1.run.app/)**
+**[Weather Data API & Dashboard](https://weather-crop-data-api-959274299202.europe-west1.run.app/)**
 
 ##  Dashboard Preview
 
